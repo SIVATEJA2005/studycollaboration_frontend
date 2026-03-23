@@ -23,14 +23,12 @@ export default function ChatTab({ roomId }) {
   // This was the root cause — isMe() always returned false
   const currentUsername = localStorage.getItem("userName");
   const currentUserId   = localStorage.getItem("userId");
-
   const [messages,  setMessages]  = useState([]);
   const [input,     setInput]     = useState("");
   const [connected, setConnected] = useState(false);
   const [loading,   setLoading]   = useState(true);
   const stompClientRef            = useRef(null);
   const bottomRef                 = useRef(null);
-
   // ── 1. Fetch existing messages ─────────────────────────────────────────────
   useEffect(() => {
     const fetchMessages = async () => {
@@ -45,7 +43,6 @@ export default function ChatTab({ roomId }) {
     };
     fetchMessages();
   }, [roomId]);
-
   // ── 2. Connect WebSocket ───────────────────────────────────────────────────
   useEffect(() => {
     const client = new Client({
@@ -65,12 +62,10 @@ export default function ChatTab({ roomId }) {
     stompClientRef.current = client;
     return () => stompClientRef.current?.deactivate();
   }, [roomId]);
-
   // ── 3. Auto scroll ────────────────────────────────────────────────────────
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
-
   // ── 4. Send message ────────────────────────────────────────────────────────
   const sendMessage = useCallback(() => {
     if (!input.trim() || !stompClientRef.current?.connected) return;
