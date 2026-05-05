@@ -8,6 +8,7 @@ import TasksTab from "../components/TaskTab";
 import ResourcesTab from "../components/ResourcesTab";
 import AIAssistantTab from "../components/AiassitentTab";
 import MembersDrawer from "../components/MemberDrawer";
+import TopicTracker from "../components/TopicTracker";
 const theme = {
   colors: {
     primary: "#6C63FF",
@@ -22,7 +23,7 @@ const theme = {
 };
 
 const API_BASE         = import.meta.env.VITE_API_URL || "http://localhost:8080";
-const TABS             = ["Notes", "Resources", "Tasks", "Chat", "AI Assistant"];
+const TABS = ["Notes", "Resources", "Tasks", "Topics", "Chat", "AI Assistant"];
 const getToken         = () => localStorage.getItem("token");
 const getCurrentUserId = () => localStorage.getItem("userId");
 const getCurrentEmail  = () => localStorage.getItem("email");
@@ -103,7 +104,8 @@ export default function RoomPage() {
       case "Resources":    return <ResourcesTab roomId={room.id} />;
       case "Tasks":        return <TasksTab roomId={room.id} />;
       case "Chat":         return room.id ? <ChatTab roomId={room.id} /> : <p>Loading chat…</p>;
-      case "AI Assistant": return <AIAssistantTab />;
+      case "AI Assistant": return <AIAssistantTab roomId={room.id}/>;
+      case "Topics": return <TopicTracker roomId={room.id} />;
       default:             return null;
     }
   };
