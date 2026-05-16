@@ -1,19 +1,20 @@
 import React, { useState } from "react";
-import { Mail, User, Lock } from "lucide-react"; 
+import { Mail, User, Lock } from "lucide-react";
 import background from "../assets/loginbackgroundimage.png";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 
-export default function SignUp() 
-{
+export default function SignUp() {
   const [email, setEmail] = useState("");
   const [userName, setUserName] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [emailSent, setEmailSent] = useState(false); // ✅ NEW
   const { signup } = useAuth();
   const navigate = useNavigate();
+
   const handleSignUp = async (e) => {
     e.preventDefault();
     if (!email || !userName || !displayName || !password) {
@@ -25,21 +26,59 @@ export default function SignUp()
       return;
     }
     setLoading(true);
-    try 
-    {
+    try {
       await signup(email, userName, displayName, password);
-      alert("Signup successful!");
-      navigate("/login");
+      setEmailSent(true); // ✅ CHANGED: show email sent screen instead of alert
     } catch (error) {
       if (error.response?.data?.message) {
         alert(error.response.data.message);
       } else {
-        alert("Sign Up Failed: Check your credentials or uniqueness");
+        alert(error.message || "Sign Up Failed: Check your credentials or uniqueness");
       }
     } finally {
       setLoading(false);
     }
   };
+
+  // ✅ NEW: Show this screen after successful signup
+  if (emailSent) {
+    return (
+      <div className="relative min-h-screen flex items-center justify-center bg-gray-100">
+        <div
+          className="absolute inset-0 bg-center bg-cover blur-sm brightness-90"
+          style={{ backgroundImage: `url(${background})` }}
+        ></div>
+        <div className="absolute inset-0 bg-black/20"></div>
+        <div className="relative z-10 bg-white/90 backdrop-blur-md shadow-2xl rounded-3xl p-10 w-full max-w-md text-center">
+          <div className="flex items-center justify-center gap-2 mb-6">
+            <div className="text-blue-600 text-3xl animate-bounce">🤖</div>
+            <h1 className="text-2xl font-bold text-blue-600">
+              Brain <span className="text-pink-500">Bridge</span>
+            </h1>
+          </div>
+          <div className="text-6xl mb-4">📬</div>
+          <h2 className="text-2xl font-bold text-blue-600 mb-2">Check your email!</h2>
+          <p className="text-gray-600 text-sm leading-relaxed">
+            We sent an activation link to{" "}
+            <span className="font-semibold text-pink-500">{email}</span>.
+            <br /><br />
+            Click the link in the email to activate your account and start your learning journey!
+          </p>
+          <p className="text-gray-400 text-xs mt-4">
+            Didn't receive it? Check your spam folder.
+          </p>
+          <button
+            onClick={() => navigate("/")}
+            className="mt-6 text-pink-500 font-semibold hover:underline text-sm"
+          >
+            ← Back to Login
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Original signup form (unchanged)
   return (
     <div className="relative min-h-screen flex items-center justify-center bg-gray-100">
       <div
@@ -70,7 +109,6 @@ export default function SignUp()
               className="w-full outline-none text-sm placeholder-gray-400"
             />
           </div>
-
           <div className="flex items-center border rounded-lg px-3 py-2 bg-white focus-within:ring-2 focus-within:ring-blue-400 transition">
             <User className="text-pink-500 w-5 h-5 mr-2" />
             <input
@@ -82,7 +120,6 @@ export default function SignUp()
               className="w-full outline-none text-sm placeholder-gray-400"
             />
           </div>
-
           <div className="flex items-center border rounded-lg px-3 py-2 bg-white focus-within:ring-2 focus-within:ring-blue-400 transition">
             <User className="text-pink-500 w-5 h-5 mr-2" />
             <input
@@ -94,7 +131,6 @@ export default function SignUp()
               className="w-full outline-none text-sm placeholder-gray-400"
             />
           </div>
-
           <div className="flex items-center border rounded-lg px-3 py-2 bg-white focus-within:ring-2 focus-within:ring-pink-400 transition">
             <Lock className="text-blue-500 w-5 h-5 mr-2" />
             <input
@@ -106,7 +142,6 @@ export default function SignUp()
               className="w-full outline-none text-sm placeholder-gray-400"
             />
           </div>
-
           <div className="flex items-center border rounded-lg px-3 py-2 bg-white focus-within:ring-2 focus-within:ring-pink-400 transition">
             <Lock className="text-blue-500 w-5 h-5 mr-2" />
             <input
@@ -127,15 +162,11 @@ export default function SignUp()
             {loading ? "Signing up..." : "Sign Up"}
           </button>
         </form>
-
-        {/* Divider */}
         <div className="flex items-center my-6">
           <hr className="flex-grow border-gray-300" />
           <span className="px-3 text-gray-400 text-xs">Or continue with</span>
           <hr className="flex-grow border-gray-300" />
         </div>
-
-        {/* Social Login */}
         <div className="flex justify-center gap-6">
           {[
             "https://cdn-icons-png.flaticon.com/512/281/281764.png",

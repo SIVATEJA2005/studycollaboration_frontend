@@ -12,15 +12,21 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <RoomsProvider>
-          <Toaster position="top-right" />
-          <Routes>
-            <Route path="/"          element={<Login />} />
-            <Route path="/signup"    element={<SignUp />} />
-            <Route path="/dashboard" element={<DashBoard />} />
-            <Route path="/room/:id"  element={<RoomPage />} />
-          </Routes>
-        </RoomsProvider>
+        <Toaster position="top-right" />
+        <Routes>
+          <Route path="/"       element={<Login />} />
+          <Route path="/signup" element={<SignUp />} />
+          <Route path="/dashboard" element={
+            <RoomsProvider>
+              <DashBoard />
+            </RoomsProvider>
+          } />
+          <Route path="/room/:id" element={
+            <RoomsProvider>
+              <RoomPage />
+            </RoomsProvider>
+          } />
+        </Routes>
       </AuthProvider>
     </BrowserRouter>
   );
