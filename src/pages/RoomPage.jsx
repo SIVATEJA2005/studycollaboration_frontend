@@ -9,6 +9,7 @@ import ResourcesTab from "../components/ResourcesTab";
 import AIAssistantTab from "../components/AiassitentTab";
 import MembersDrawer from "../components/MemberDrawer";
 import TopicTracker from "../components/TopicTracker";
+import PomodoroWidget from "../components/PomodoroWidget";
 const theme = {
   colors: {
     primary: "#6C63FF",
@@ -161,6 +162,7 @@ export default function RoomPage() {
         room={room}
         onMembershipChange={refreshRoom}
       />
+      <PomodoroWidget roomId={room.id} />
     </div>
   );
 }

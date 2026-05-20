@@ -17,24 +17,22 @@ const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8080";
 const getToken = () => localStorage.getItem("token");
 
 export default function AIAssistantTab({ roomId }) {
-  const [activeMode, setActiveMode]   = useState("chat");    // chat | summarize | quiz
-  const [query, setQuery]             = useState("");
-  const [messages, setMessages]       = useState([
+  const [activeMode, setActiveMode]     = useState("chat");
+  const [query, setQuery]               = useState("");
+  const [messages, setMessages]         = useState([
     { role: "ai", text: "Hi! I'm your AI study assistant 🤖 Ask me anything about your uploaded study materials!" }
   ]);
-  const [loading, setLoading]         = useState(false);
-  const [resources, setResources]     = useState([]);
+  const [loading, setLoading]           = useState(false);
+  const [resources, setResources]       = useState([]);
   const [selectedFile, setSelectedFile] = useState(null);
   const [numQuestions, setNumQuestions] = useState(5);
-  const [result, setResult]           = useState(null);
+  const [result, setResult]             = useState(null);
   const bottomRef = useRef(null);
 
-  // Auto scroll to bottom
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, result]);
 
-  // Fetch PDF resources for summarize/quiz
   useEffect(() => {
     const fetchResources = async () => {
       try {
@@ -91,9 +89,9 @@ export default function AIAssistantTab({ roomId }) {
     setLoading(true);
     setResult(null);
     try {
-      const fileName = selectedFile.url.split("/").pop();
+      // ✅ FIXED: send cloudinaryUrl (the full URL stored in DB) instead of fileName
       const res = await fetch(
-        `${API_BASE}/api/ai/summarize?roomId=${roomId}&fileName=${encodeURIComponent(fileName)}`,
+        `${API_BASE}/api/ai/summarize?cloudinaryUrl=${encodeURIComponent(selectedFile.url)}`,
         {
           method: "POST",
           headers: { Authorization: `Bearer ${getToken()}` },
@@ -118,9 +116,9 @@ export default function AIAssistantTab({ roomId }) {
     setLoading(true);
     setResult(null);
     try {
-      const fileName = selectedFile.url.split("/").pop();
+      // ✅ FIXED: send cloudinaryUrl instead of roomId + fileName
       const res = await fetch(
-        `${API_BASE}/api/ai/quiz?roomId=${roomId}&fileName=${encodeURIComponent(fileName)}&numQuestions=${numQuestions}`,
+        `${API_BASE}/api/ai/quiz?cloudinaryUrl=${encodeURIComponent(selectedFile.url)}&numQuestions=${numQuestions}`,
         {
           method: "POST",
           headers: { Authorization: `Bearer ${getToken()}` },
@@ -139,7 +137,6 @@ export default function AIAssistantTab({ roomId }) {
     }
   };
 
-  // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
 
@@ -155,9 +152,9 @@ export default function AIAssistantTab({ roomId }) {
       {/* Mode tabs */}
       <div style={{ display: "flex", borderBottom: `1px solid ${theme.colors.border}`, background: "#fff", padding: "0 24px" }}>
         {[
-          { key: "chat",      label: "💬 Ask AI",   desc: "RAG Chat" },
-          { key: "summarize", label: "📝 Summarize", desc: "Summarize PDF" },
-          { key: "quiz",      label: "🧪 Quiz",      desc: "Generate Quiz" },
+          { key: "chat",      label: "💬 Ask AI" },
+          { key: "summarize", label: "📝 Summarize" },
+          { key: "quiz",      label: "🧪 Quiz" },
         ].map((m) => (
           <button
             key={m.key}
@@ -225,8 +222,6 @@ export default function AIAssistantTab({ roomId }) {
       {/* ── SUMMARIZE & QUIZ MODE ── */}
       {(activeMode === "summarize" || activeMode === "quiz") && (
         <div style={{ flex: 1, overflowY: "auto", padding: "24px" }}>
-
-          {/* File selector */}
           {resources.length === 0 ? (
             <div style={{ textAlign: "center", padding: "60px 0", color: theme.colors.textMuted }}>
               <div style={{ fontSize: 48, marginBottom: 12 }}>📄</div>
@@ -259,7 +254,6 @@ export default function AIAssistantTab({ roomId }) {
                 </div>
               </div>
 
-              {/* Quiz number selector */}
               {activeMode === "quiz" && (
                 <div style={{ marginBottom: 20 }}>
                   <p style={{ margin: "0 0 8px", fontSize: 12, fontWeight: 700, color: theme.colors.textMuted, textTransform: "uppercase", letterSpacing: "0.07em" }}>Number of Questions</p>
@@ -279,7 +273,6 @@ export default function AIAssistantTab({ roomId }) {
                 </div>
               )}
 
-              {/* Action button */}
               <button
                 onClick={activeMode === "summarize" ? summarize : generateQuiz}
                 disabled={loading || !selectedFile}
@@ -295,7 +288,6 @@ export default function AIAssistantTab({ roomId }) {
                   : (activeMode === "summarize" ? "📝 Summarize This PDF" : `🧪 Generate ${numQuestions} Questions`)}
               </button>
 
-              {/* Result */}
               {result && (
                 <div style={{
                   background: result.type === "error" ? "#FEF2F2" : "#fff",
