@@ -24,7 +24,7 @@ const theme = {
 };
 
 const API_BASE         = import.meta.env.VITE_API_URL || "http://localhost:8080";
-const TABS = ["Notes", "Resources", "Tasks", "Topics", "Chat", "AI Assistant"];
+const TABS = ["Resources", "Tasks", "Topics", "Chat", "AI Assistant"];
 const getToken         = () => localStorage.getItem("token");
 const getCurrentUserId = () => localStorage.getItem("userId");
 const getCurrentEmail  = () => localStorage.getItem("email");
@@ -67,7 +67,7 @@ export default function RoomPage() {
   // Room comes from router state when Dashboard navigates here
   const initialRoom = location.state?.room;
 
-  const [activeTab,    setActiveTab]    = useState("Notes");
+  const [activeTab,    setActiveTab]    = useState("Resources");
   const [membersOpen,  setMembersOpen]  = useState(false);
   const [room,         setRoom]         = useState(initialRoom);
 
@@ -101,7 +101,7 @@ export default function RoomPage() {
 
   const renderTab = () => {
     switch (activeTab) {
-      case "Notes":        return <NotesTab roomId={room.id} />;
+      // case "Notes":        return <NotesTab roomId={room.id} />;
       case "Resources":    return <ResourcesTab roomId={room.id} />;
       case "Tasks":        return <TasksTab roomId={room.id} />;
       case "Chat":         return room.id ? <ChatTab roomId={room.id} /> : <p>Loading chat…</p>;
