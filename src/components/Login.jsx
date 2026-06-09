@@ -72,11 +72,10 @@ export default function Login()
               className="w-full outline-none text-sm placeholder-gray-400"
             />
           </div>
-
-          <div className="text-right text-xs text-pink-500 cursor-pointer hover:underline">
+          <div onClick={() => navigate("/forgot-password")}
+            className="text-right text-xs text-pink-500 cursor-pointer hover:underline">
             Forgot password?
           </div>
-
           <button
             type="submit"
             disabled={loading}
