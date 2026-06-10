@@ -30,22 +30,26 @@ export default function PomodoroWidget({ roomId }) {
   };
 
   // ── Compute remaining seconds correctly across pause/resume cycles ──────
-  const computeTimeLeft = (sess) => {
+const computeTimeLeft = (sess) => {
     if (!sess || sess.status === "FINISHED") return 0;
+    if (!sess.durationSeconds) return 0;
 
-    const accumulated = sess.elapsedSeconds ?? 0; // time from all previous run segments
+    const accumulated = sess.elapsedSeconds ?? 0;
+
+    // Force UTC parsing by appending Z if missing
+    const startedAt = sess.startedAt.endsWith("Z") 
+        ? sess.startedAt 
+        : sess.startedAt + "Z";
 
     if (sess.status === "PAUSED") {
-      // Nothing is ticking — just subtract what's already elapsed
-      return Math.max(0, sess.durationSeconds - accumulated);
+        return Math.max(0, sess.durationSeconds - accumulated);
     }
 
-    // RUNNING — add current live segment on top of accumulated
     const currentSegment = Math.floor(
-      (Date.now() - new Date(sess.startedAt).getTime()) / 1000
+        (Date.now() - new Date(startedAt).getTime()) / 1000
     );
     return Math.max(0, sess.durationSeconds - accumulated - currentSegment);
-  };
+};
 
   // ── Start client tick — uses sessionRef to avoid stale closure ──────────
   const startTick = (sess) => {
