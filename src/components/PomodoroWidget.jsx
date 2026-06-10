@@ -12,41 +12,59 @@ const PHASE_CONFIG = {
 };
 
 export default function PomodoroWidget({ roomId }) {
-  const [session,   setSession]   = useState(null);   // active session from server
-  const [timeLeft,  setTimeLeft]  = useState(0);      // seconds remaining (client-computed)
+  const [session,   setSession]   = useState(null);
+  const [timeLeft,  setTimeLeft]  = useState(0);
   const [expanded,  setExpanded]  = useState(false);
   const [phase,     setPhase]     = useState("FOCUS");
   const [loading,   setLoading]   = useState(false);
   const [connected, setConnected] = useState(false);
 
-  const stompRef   = useRef(null);
-  const tickRef    = useRef(null);
+  const stompRef      = useRef(null);
+  const tickRef       = useRef(null);
+  const sessionRef    = useRef(null); // always-fresh copy to avoid stale closures
 
-  // ── Compute remaining seconds from server startedAt ─────────────────────
-  const computeTimeLeft = (sess) => {
-    if (!sess || sess.status === "FINISHED") return 0;
-    if (sess.status === "PAUSED") return sess.durationSeconds; // stored remainder
-    const elapsed = Math.floor(
-      (Date.now() - new Date(sess.startedAt).getTime()) / 1000
-    );
-    return Math.max(0, sess.durationSeconds - elapsed);
+  // ── Keep sessionRef in sync, always use this instead of setSession directly ──
+  const updateSession = (sess) => {
+    sessionRef.current = sess;
+    setSession(sess);
   };
 
-  // ── Start client tick ────────────────────────────────────────────────────
+  // ── Compute remaining seconds correctly across pause/resume cycles ──────
+  const computeTimeLeft = (sess) => {
+    if (!sess || sess.status === "FINISHED") return 0;
+
+    const accumulated = sess.elapsedSeconds ?? 0; // time from all previous run segments
+
+    if (sess.status === "PAUSED") {
+      // Nothing is ticking — just subtract what's already elapsed
+      return Math.max(0, sess.durationSeconds - accumulated);
+    }
+
+    // RUNNING — add current live segment on top of accumulated
+    const currentSegment = Math.floor(
+      (Date.now() - new Date(sess.startedAt).getTime()) / 1000
+    );
+    return Math.max(0, sess.durationSeconds - accumulated - currentSegment);
+  };
+
+  // ── Start client tick — uses sessionRef to avoid stale closure ──────────
   const startTick = (sess) => {
     clearInterval(tickRef.current);
     if (!sess || sess.status !== "RUNNING") return;
+
     tickRef.current = setInterval(() => {
-      const left = computeTimeLeft(sess);
+      const current = sessionRef.current; // always fresh
+      const left = computeTimeLeft(current);
       setTimeLeft(left);
       if (left <= 0) {
         clearInterval(tickRef.current);
-        handleAutoFinish(sess);
+        handleAutoFinish(current);
       }
     }, 1000);
   };
 
   const handleAutoFinish = async (sess) => {
+    if (!sess) return;
     try {
       await fetch(`${API_BASE}/api/pomodoro/${sess.id}/finish`, {
         method: "PUT",
@@ -65,7 +83,7 @@ export default function PomodoroWidget({ roomId }) {
         if (res.ok) {
           const data = await res.json();
           if (data) {
-            setSession(data);
+            updateSession(data);
             setTimeLeft(computeTimeLeft(data));
             startTick(data);
           }
@@ -85,7 +103,7 @@ export default function PomodoroWidget({ roomId }) {
         setConnected(true);
         client.subscribe(`/topic/room/${roomId}/pomodoro`, (msg) => {
           const sess = JSON.parse(msg.body);
-          setSession(sess);
+          updateSession(sess);
           const left = computeTimeLeft(sess);
           setTimeLeft(left);
           startTick(sess);
@@ -140,18 +158,17 @@ export default function PomodoroWidget({ roomId }) {
     return `${m}:${s}`;
   };
 
-  const isActive   = session && session.status !== "FINISHED";
-  const isRunning  = session?.status === "RUNNING";
-  const isPaused   = session?.status === "PAUSED";
-  const cfg        = PHASE_CONFIG[session?.phase || phase];
-  const totalSecs  = session ? session.durationSeconds : PHASE_CONFIG[phase].minutes * 60;
-  const progress   = isActive ? Math.max(0, Math.min(1, 1 - timeLeft / totalSecs)) : 0;
-  const pomCount   = session?.pomodoroCount ?? 0;
+  const isActive  = session && session.status !== "FINISHED";
+  const isRunning = session?.status === "RUNNING";
+  const isPaused  = session?.status === "PAUSED";
+  const cfg       = PHASE_CONFIG[session?.phase || phase];
+  const totalSecs = session ? session.durationSeconds : PHASE_CONFIG[phase].minutes * 60;
+  const progress  = isActive ? Math.max(0, Math.min(1, 1 - timeLeft / totalSecs)) : 0;
+  const pomCount  = session?.pomodoroCount ?? 0;
 
-  // Stroke for circular progress ring
-  const R          = 28;
-  const CIRC       = 2 * Math.PI * R;
-  const dash       = CIRC * progress;
+  const R    = 28;
+  const CIRC = 2 * Math.PI * R;
+  const dash = CIRC * progress;
 
   return (
     <div style={{
@@ -208,7 +225,6 @@ export default function PomodoroWidget({ roomId }) {
               fontWeight: 800,
               color:      cfg.color,
               fontVariantNumeric: "tabular-nums",
-              transform:  "rotate(0deg)",
             }}>
               {isActive ? fmt(timeLeft) : fmt(PHASE_CONFIG[phase].minutes * 60)}
             </div>
@@ -299,7 +315,6 @@ export default function PomodoroWidget({ roomId }) {
             )}
           </div>
 
-          {/* Started by */}
           {session?.startedByName && (
             <p style={{ margin:"12px 0 0", fontSize:11, color:"#9CA3AF", textAlign:"center" }}>
               Started by {session.startedByName}
@@ -308,7 +323,7 @@ export default function PomodoroWidget({ roomId }) {
         </div>
       )}
 
-      {/* ── Floating pill (always visible) ── */}
+      {/* ── Floating pill ── */}
       <div
         onClick={() => setExpanded(e => !e)}
         style={{
@@ -326,7 +341,6 @@ export default function PomodoroWidget({ roomId }) {
           minWidth:     170,
         }}
       >
-        {/* Pulsing dot when running */}
         <span style={{
           width:        10,
           height:       10,
