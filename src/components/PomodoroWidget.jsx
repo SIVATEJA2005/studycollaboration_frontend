@@ -126,13 +126,24 @@ const computeTimeLeft = (sess) => {
 
   // ── Actions ──────────────────────────────────────────────────────────────
   const startSession = async () => {
-    setLoading(true);
-    try {
-      await fetch(`${API_BASE}/api/pomodoro/room/${roomId}/start?phase=${phase}`, {
-        method:  "POST",
-        headers: { Authorization: `Bearer ${getToken()}` },
-      });
-    } finally { setLoading(false); }
+      setLoading(true);
+      const requestSentAt = Date.now(); // ← record before fetch
+      try {
+        const res = await fetch(`${API_BASE}/api/pomodoro/room/${roomId}/start?phase=${phase}`, {
+          method:  "POST",
+          headers: { Authorization: `Bearer ${getToken()}` },
+        });
+        const sess = await res.json();
+        
+        // Compensate: shift startedAt back by network latency
+        const latencyMs = Date.now() - requestSentAt;
+        sess.startedAt = new Date(new Date(sess.startedAt + "Z").getTime() - latencyMs).toISOString();
+        
+        updateSession(sess);
+        setTimeLeft(computeTimeLeft(sess));
+        startTick(sess);
+      } finally { setLoading(false); }
+      
   };
 
   const togglePause = async () => {
@@ -209,33 +220,46 @@ const computeTimeLeft = (sess) => {
             </div>
           </div>
 
-          {/* Circular timer */}
-          <div style={{ display:"flex", flexDirection:"column", alignItems:"center", marginBottom:20 }}>
-            <svg width={80} height={80} style={{ transform:"rotate(-90deg)" }}>
-              <circle cx={40} cy={40} r={R} fill="none" stroke="#EDE9FF" strokeWidth={5}/>
-              <circle
-                cx={40} cy={40} r={R}
-                fill="none"
-                stroke={cfg.color}
-                strokeWidth={5}
-                strokeDasharray={`${dash} ${CIRC}`}
-                strokeLinecap="round"
-                style={{ transition:"stroke-dasharray 1s linear" }}
-              />
-            </svg>
-            <div style={{
-              marginTop:  -56,
-              fontSize:   22,
-              fontWeight: 800,
-              color:      cfg.color,
-              fontVariantNumeric: "tabular-nums",
-            }}>
-              {isActive ? fmt(timeLeft) : fmt(PHASE_CONFIG[phase].minutes * 60)}
-            </div>
-            <div style={{ marginTop:48, fontSize:11, color:"#9CA3AF" }}>
-              {isRunning ? "Focus time" : isPaused ? "Paused" : "Ready"}
-            </div>
+      {/* Circular timer */}
+      <div style={{ 
+          display: "flex", 
+          flexDirection: "column", 
+          alignItems: "center", 
+          marginBottom: 20 
+      }}>
+          <div style={{ position: "relative", width: 80, height: 80 }}>
+              <svg width={80} height={80} style={{ transform: "rotate(-90deg)" }}>
+                  <circle cx={40} cy={40} r={R} fill="none" stroke="#EDE9FF" strokeWidth={5}/>
+                  <circle
+                      cx={40} cy={40} r={R}
+                      fill="none"
+                      stroke={cfg.color}
+                      strokeWidth={5}
+                      strokeDasharray={`${dash} ${CIRC}`}
+                      strokeLinecap="round"
+                      style={{ transition: "stroke-dasharray 1s linear" }}
+                  />
+              </svg>
+              {/* Text centered absolutely inside the SVG */}
+              <div style={{
+                  position:   "absolute",
+                  top:        "50%",
+                  left:       "50%",
+                  transform:  "translate(-50%, -50%)",
+                  fontSize:   16,          // ← smaller font fits inside circle
+                  fontWeight: 800,
+                  color:      cfg.color,
+                  fontVariantNumeric: "tabular-nums",
+                  whiteSpace: "nowrap",    // ← prevents wrapping
+                  lineHeight: 1,
+              }}>
+                  {isActive ? fmt(timeLeft) : fmt(PHASE_CONFIG[phase].minutes * 60)}
+              </div>
           </div>
+          <div style={{ marginTop: 8, fontSize: 11, color: "#9CA3AF" }}>
+              {isRunning ? "Focus time" : isPaused ? "Paused" : "Ready"}
+          </div>
+      </div>
 
           {/* Phase selector (only when no active session) */}
           {!isActive && (
