@@ -3,15 +3,14 @@ import { Mail, Lock } from "lucide-react";
 import background from "../assets/loginbackgroundimage.png";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { RiRobot2Fill } from "react-icons/ri";
 
-export default function Login() 
-{
-
-  const [email, setEmail] = useState("");
+export default function Login() {
+  const [email, setEmail]       = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
-  const navigate = useNavigate();
+  const [loading, setLoading]   = useState(false);
+  const { login }               = useAuth();
+  const navigate                = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -25,29 +24,34 @@ export default function Login()
       setLoading(false);
     }
   };
+
   return (
     <div className="relative min-h-screen flex items-center justify-center bg-gray-100">
       {/* Background Image */}
       <div
         className="absolute inset-0 bg-center bg-cover blur-sm brightness-90"
         style={{ backgroundImage: `url(${background})` }}
-      ></div>
+      />
       {/* Overlay */}
-      <div className="absolute inset-0 bg-black/20"></div>
+      <div className="absolute inset-0 bg-black/20" />
+
       {/* Login Card */}
       <div className="relative z-10 bg-white/90 backdrop-blur-md shadow-2xl rounded-3xl p-10 w-full max-w-md">
+
         {/* Logo */}
         <div className="flex items-center justify-center gap-2 mb-6">
-          <div className="text-blue-600 text-3xl animate-bounce">🤖</div>
+          <RiRobot2Fill size={32} className="text-blue-600 animate-bounce" />
           <h1 className="text-2xl font-bold text-blue-600">
             Brain <span className="text-pink-500">Bridge</span>
           </h1>
         </div>
+
         {/* Welcome Text */}
         <div className="text-center mb-6">
           <h2 className="text-2xl font-bold text-gray-700">Welcome Back</h2>
           <p className="text-gray-500 text-sm">Log in to continue your studies</p>
         </div>
+
         {/* Form */}
         <form className="space-y-4" onSubmit={handleLogin}>
           <div className="flex items-center border rounded-lg px-3 py-2 bg-white focus-within:ring-2 focus-within:ring-blue-400 transition">
@@ -72,15 +76,18 @@ export default function Login()
               className="w-full outline-none text-sm placeholder-gray-400"
             />
           </div>
-          <div onClick={() => navigate("/forgot-password")}
-            className="text-right text-xs text-pink-500 cursor-pointer hover:underline">
+          <div
+            onClick={() => navigate("/forgot-password")}
+            className="text-right text-xs text-pink-500 cursor-pointer hover:underline"
+          >
             Forgot password?
           </div>
           <button
             type="submit"
             disabled={loading}
             className="w-full py-2.5 rounded-lg text-white font-semibold
-            bg-gradient-to-r from-blue-500 to-pink-500 hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            bg-gradient-to-r from-blue-500 to-pink-500 hover:opacity-90 transition
+            disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? "Logging in..." : "Log In"}
           </button>
@@ -96,9 +103,9 @@ export default function Login()
         {/* Social Login */}
         <div className="flex justify-center gap-6">
           {[
-            "https://cdn-icons-png.flaticon.com/512/281/281764.png", // Facebook
-            "https://cdn-icons-png.flaticon.com/512/732/732221.png", // Google
-            "https://cdn-icons-png.flaticon.com/512/0/747.png",      // Twitter
+            "https://cdn-icons-png.flaticon.com/512/281/281764.png",
+            "https://cdn-icons-png.flaticon.com/512/732/732221.png",
+            "https://cdn-icons-png.flaticon.com/512/0/747.png",
           ].map((icon, idx) => (
             <button
               key={idx}
@@ -108,13 +115,18 @@ export default function Login()
             </button>
           ))}
         </div>
+
         {/* Signup */}
         <div className="text-center mt-6 text-sm text-gray-500">
-          Don’t have an account?
-          <span className="text-pink-500 font-semibold cursor-pointer ml-1 hover:underline" onClick={()=>navigate("/signup")}>
+          Don't have an account?
+          <span
+            className="text-pink-500 font-semibold cursor-pointer ml-1 hover:underline"
+            onClick={() => navigate("/signup")}
+          >
             Sign Up
           </span>
         </div>
+
       </div>
     </div>
   );

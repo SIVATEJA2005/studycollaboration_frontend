@@ -1,9 +1,38 @@
 import React, { useState, useEffect } from "react";
 import { theme } from "../components/StudyRoomCard";
 import { useRooms } from "../context/RoomContext";
+import { IoClose, IoAdd } from "react-icons/io5";
+import { MdWarningAmber, MdCheckCircleOutline } from "react-icons/md";
+import {
+  IoBookOutline,
+  IoPeopleOutline,
+  IoSettingsOutline,
+  IoTrendingUpOutline,
+  IoDiamondOutline,
+  IoBulbOutline,
+  IoFlagOutline,
+  IoFlaskOutline,
+  IoGlobeOutline,
+  IoTrophyOutline,
+  IoPencilOutline,
+} from "react-icons/io5";
+import { BiBrain } from "react-icons/bi";
 
 // ─── Icon picker options ───────────────────────────────────────────────────────
-const ICONS = ["📚", "👥", "⚙️", "📈", "🔷", "🧠", "💡", "🎯", "🔬", "🌐", "🏆", "✏️"];
+const ICONS = [
+  { key: "book",     Icon: IoBookOutline },
+  { key: "people",   Icon: IoPeopleOutline },
+  { key: "settings", Icon: IoSettingsOutline },
+  { key: "trending", Icon: IoTrendingUpOutline },
+  { key: "diamond",  Icon: IoDiamondOutline },
+  { key: "brain",    Icon: BiBrain },
+  { key: "bulb",     Icon: IoBulbOutline },
+  { key: "flag",     Icon: IoFlagOutline },
+  { key: "flask",    Icon: IoFlaskOutline },
+  { key: "globe",    Icon: IoGlobeOutline },
+  { key: "trophy",   Icon: IoTrophyOutline },
+  { key: "pencil",   Icon: IoPencilOutline },
+];
 
 const TAG_OPTIONS = ["Favorites", "Networking", "Machine Learning", "General", "Competitive", "Research"];
 
@@ -16,7 +45,7 @@ const s = {
     backdropFilter: "blur(4px)",
     zIndex: 1000,
     display: "flex",
-    alignItems: "flex-end",       // sheet slides from bottom
+    alignItems: "flex-end",
     justifyContent: "center",
   },
   sheet: (visible) => ({
@@ -57,12 +86,10 @@ const s = {
     border: "none",
     background: "#F3F0FF",
     color: theme.colors.primary,
-    fontSize: 18,
     cursor: "pointer",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    lineHeight: 1,
   },
   body: {
     padding: "20px 28px 0",
@@ -118,7 +145,6 @@ const s = {
     borderRadius: 10,
     border: selected ? `2px solid ${theme.colors.primary}` : `1.5px solid ${theme.colors.border}`,
     background: selected ? theme.colors.primaryLight : "#FDFAFF",
-    fontSize: 22,
     cursor: "pointer",
     display: "flex",
     alignItems: "center",
@@ -154,6 +180,10 @@ const s = {
     marginTop: 4,
     letterSpacing: "0.02em",
     transition: "opacity 0.2s",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
   }),
   error: {
     fontSize: 13,
@@ -162,6 +192,9 @@ const s = {
     border: "1px solid #FECACA",
     borderRadius: 8,
     padding: "9px 14px",
+    display: "flex",
+    alignItems: "center",
+    gap: 6,
   },
   success: {
     fontSize: 13,
@@ -171,43 +204,38 @@ const s = {
     borderRadius: 8,
     padding: "9px 14px",
     textAlign: "center",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
   },
 };
 
 // ─── CreateRoomModal ───────────────────────────────────────────────────────────
-/**
- * Props:
- *   isOpen     bool      — controls visibility
- *   onClose    fn        — called when user closes
- *   onSuccess  fn(room)  — called with new room object after successful API call
- */
 export default function CreateRoomModal({ isOpen, onClose, onSuccess }) {
   const [visible, setVisible] = useState(false);
   const [form, setForm] = useState({
     title: "",
     description: "",
-    icon: "📚",
+    icon: "book",
     tag: "General",
   });
   const [loading, setLoading] = useState(false);
   const [error, setError]     = useState(null);
   const [success, setSuccess] = useState(false);
 
-  // Animate in/out
   useEffect(() => {
     if (isOpen) {
-      // small delay so CSS transition fires
       setTimeout(() => setVisible(true), 10);
     } else {
       setVisible(false);
     }
   }, [isOpen]);
 
-  // Reset form when closed
   useEffect(() => {
     if (!isOpen) {
       setTimeout(() => {
-        setForm({ title: "", description: "", icon: "📚", tag: "General" });
+        setForm({ title: "", description: "", icon: "book", tag: "General" });
         setError(null);
         setSuccess(false);
       }, 350);
@@ -220,32 +248,32 @@ export default function CreateRoomModal({ isOpen, onClose, onSuccess }) {
 
   const { createRoom } = useRooms();
   const handleSubmit = async () => {
-  if (!form.title.trim()) {
-    setError("Room name is required.");
-    return;
-  }
-  setLoading(true);
-  setError(null);
+    if (!form.title.trim()) {
+      setError("Room name is required.");
+      return;
+    }
+    setLoading(true);
+    setError(null);
 
-  const result = await createRoom({
-    title: form.title.trim(),
-    description: form.description.trim(),
-    icon: form.icon,
-    tag: form.tag,
-  });
+    const result = await createRoom({
+      title: form.title.trim(),
+      description: form.description.trim(),
+      icon: form.icon,
+      tag: form.tag,
+    });
 
-  if (result.success) {
-    setSuccess(true);
-    setTimeout(() => {
-      onSuccess(result.room);  // pass new room up to Dashboard
-      onClose();
-    }, 900);
-  } else {
-    setError(result.error);
-  }
+    if (result.success) {
+      setSuccess(true);
+      setTimeout(() => {
+        onSuccess(result.room);
+        onClose();
+      }, 900);
+    } else {
+      setError(result.error);
+    }
 
-  setLoading(false);
-};
+    setLoading(false);
+  };
 
   if (!isOpen && !visible) return null;
 
@@ -258,7 +286,9 @@ export default function CreateRoomModal({ isOpen, onClose, onSuccess }) {
         {/* Header */}
         <div style={s.header}>
           <h2 style={s.title}>Create a Room</h2>
-          <button style={s.closeBtn} onClick={onClose}>×</button>
+          <button style={s.closeBtn} onClick={onClose}>
+            <IoClose size={18} />
+          </button>
         </div>
 
         {/* Body */}
@@ -294,13 +324,16 @@ export default function CreateRoomModal({ isOpen, onClose, onSuccess }) {
           <div>
             <label style={s.label}>Pick an Icon</label>
             <div style={s.iconGrid}>
-              {ICONS.map((icon) => (
+              {ICONS.map(({ key, Icon }) => (
                 <button
-                  key={icon}
-                  style={s.iconBtn(form.icon === icon)}
-                  onClick={() => setForm({ ...form, icon })}
+                  key={key}
+                  style={s.iconBtn(form.icon === key)}
+                  onClick={() => setForm({ ...form, icon: key })}
                 >
-                  {icon}
+                  <Icon
+                    size={22}
+                    color={form.icon === key ? theme.colors.primary : theme.colors.textSecondary}
+                  />
                 </button>
               ))}
             </div>
@@ -323,8 +356,18 @@ export default function CreateRoomModal({ isOpen, onClose, onSuccess }) {
           </div>
 
           {/* Error / Success */}
-          {error   && <div style={s.error}>⚠️ {error}</div>}
-          {success && <div style={s.success}>✅ Room created successfully!</div>}
+          {error && (
+            <div style={s.error}>
+              <MdWarningAmber size={15} />
+              {error}
+            </div>
+          )}
+          {success && (
+            <div style={s.success}>
+              <MdCheckCircleOutline size={15} />
+              Room created successfully!
+            </div>
+          )}
 
           {/* Submit */}
           <button
@@ -332,7 +375,8 @@ export default function CreateRoomModal({ isOpen, onClose, onSuccess }) {
             onClick={handleSubmit}
             disabled={loading || success}
           >
-            {loading ? "Creating…" : success ? "Done!" : "＋ Create Room"}
+            {!loading && !success && <IoAdd size={18} />}
+            {loading ? "Creating…" : success ? "Done!" : "Create Room"}
           </button>
 
         </div>

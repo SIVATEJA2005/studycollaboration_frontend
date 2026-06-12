@@ -3,6 +3,8 @@ import { Mail, ArrowLeft } from "lucide-react";
 import background from "../assets/loginbackgroundimage.png";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { RiRobot2Fill } from "react-icons/ri";
+import { MdOutlineMarkEmailRead } from "react-icons/md";
 
 export default function ForgotPassword() {
   const [email, setEmail]     = useState("");
@@ -19,7 +21,7 @@ export default function ForgotPassword() {
       await axios.post(
         `${import.meta.env.VITE_API_URL}/api/users/forgot-password`,
         { email }
-        );
+      );
       setSent(true);
     } catch {
       setError("Something went wrong. Please try again.");
@@ -38,8 +40,9 @@ export default function ForgotPassword() {
 
       <div className="relative z-10 bg-white/90 backdrop-blur-md shadow-2xl rounded-3xl p-10 w-full max-w-md">
 
+        {/* Brand header */}
         <div className="flex items-center justify-center gap-2 mb-6">
-          <div className="text-blue-600 text-3xl animate-bounce">🤖</div>
+          <RiRobot2Fill className="text-blue-600 animate-bounce" size={32} />
           <h1 className="text-2xl font-bold text-blue-600">
             Brain <span className="text-pink-500">Bridge</span>
           </h1>
@@ -82,7 +85,9 @@ export default function ForgotPassword() {
           </>
         ) : (
           <div className="text-center py-4">
-            <div className="text-5xl mb-4">📬</div>
+            <div className="flex justify-center mb-4">
+              <MdOutlineMarkEmailRead size={52} className="text-blue-500" />
+            </div>
             <h2 className="text-xl font-bold text-gray-700 mb-2">Check your inbox!</h2>
             <p className="text-gray-500 text-sm">
               A reset link has been sent to{" "}

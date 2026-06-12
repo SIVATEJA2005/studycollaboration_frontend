@@ -2,6 +2,11 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
+import { IoClose, IoSearchOutline } from "react-icons/io5";
+import { IoPeopleOutline } from "react-icons/io5";
+import { MdCheckCircleOutline, MdInfoOutline } from "react-icons/md";
+import { RiDoorOpenLine, RiRocketLine } from "react-icons/ri";
+import { HiOutlineUserGroup } from "react-icons/hi";
 
 const theme = {
   colors: {
@@ -96,7 +101,10 @@ function MembersDrawer({ isOpen, onClose, room, onMembershipChange }) {
   if (!isOpen && !visible) return null;
 
   return (
-    <div onClick={(e) => e.target === e.currentTarget && onClose()} style={{ position:"fixed",inset:0,zIndex:1000,background:"rgba(30,27,75,0.45)",backdropFilter:"blur(6px)",display:"flex",alignItems:"flex-end",justifyContent:"center" }}>
+    <div
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+      style={{ position:"fixed",inset:0,zIndex:1000,background:"rgba(30,27,75,0.45)",backdropFilter:"blur(6px)",display:"flex",alignItems:"flex-end",justifyContent:"center" }}
+    >
       <div style={{ width:"100%",maxWidth:540,background:"#fff",borderRadius:"24px 24px 0 0",boxShadow:"0 -12px 48px rgba(108,99,255,0.2)",transform:visible?"translateY(0)":"translateY(100%)",transition:"transform 0.38s cubic-bezier(0.34,1.4,0.64,1)",maxHeight:"88vh",display:"flex",flexDirection:"column" }}>
         <div style={{ width:44,height:5,borderRadius:99,background:"#DDD5FF",margin:"14px auto 0" }} />
 
@@ -108,16 +116,25 @@ function MembersDrawer({ isOpen, onClose, room, onMembershipChange }) {
               {room?.name} · {room?.memberCount ?? members.length} member{(room?.memberCount ?? members.length) !== 1 ? "s" : ""}
             </p>
           </div>
-          <button onClick={onClose} style={{ width:34,height:34,borderRadius:"50%",border:"none",background:"#F3F0FF",color:theme.colors.primary,fontSize:20,cursor:"pointer" }}>×</button>
+          <button onClick={onClose} style={{ width:34,height:34,borderRadius:"50%",border:"none",background:"#F3F0FF",color:theme.colors.primary,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center" }}>
+            <IoClose size={18} />
+          </button>
         </div>
 
         {/* Sub-tabs */}
         <div style={{ display:"flex",padding:"14px 24px 0",borderBottom:`1px solid ${theme.colors.border}` }}>
           {[
-            { key:"members", label:`👥 Members (${room?.memberCount ?? members.length})` },
-            { key:"add",     label:"🔍 Find People" },
-          ].map(t => (
-            <button key={t.key} onClick={() => setDrawerTab(t.key)} style={{ padding:"9px 18px",border:"none",background:"transparent",cursor:"pointer",fontSize:13,fontWeight:drawerTab===t.key?700:500,color:drawerTab===t.key?theme.colors.primary:theme.colors.textMuted,borderBottom:drawerTab===t.key?`2.5px solid ${theme.colors.primary}`:"2.5px solid transparent",marginBottom:-1,transition:"all 0.15s" }}>{t.label}</button>
+            { key:"members", label:"Members", Icon: IoPeopleOutline, count: room?.memberCount ?? members.length },
+            { key:"add",     label:"Find People", Icon: IoSearchOutline },
+          ].map(({ key, label, Icon, count }) => (
+            <button
+              key={key}
+              onClick={() => setDrawerTab(key)}
+              style={{ display:"flex",alignItems:"center",gap:5,padding:"9px 18px",border:"none",background:"transparent",cursor:"pointer",fontSize:13,fontWeight:drawerTab===key?700:500,color:drawerTab===key?theme.colors.primary:theme.colors.textMuted,borderBottom:drawerTab===key?`2.5px solid ${theme.colors.primary}`:"2.5px solid transparent",marginBottom:-1,transition:"all 0.15s" }}
+            >
+              <Icon size={14} />
+              {label}{count !== undefined ? ` (${count})` : ""}
+            </button>
           ))}
         </div>
 
@@ -129,28 +146,43 @@ function MembersDrawer({ isOpen, onClose, room, onMembershipChange }) {
             <>
               <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",padding:"14px 18px",borderRadius:14,marginBottom:16,background:isCurrentUserMember?"linear-gradient(135deg,#FFF1F1,#FFEDED)":"linear-gradient(135deg,#F3F0FF,#EDE9FF)",border:`1.5px solid ${isCurrentUserMember?"#FECACA":theme.colors.border}` }}>
                 <div>
-                  <p style={{ margin:0,fontWeight:700,fontSize:14,color:theme.colors.textPrimary }}>
-                    {isCurrentUserMember ? "✅ You're a member" : "🚪 You're not in this room"}
+                  <p style={{ margin:0,fontWeight:700,fontSize:14,color:theme.colors.textPrimary,display:"flex",alignItems:"center",gap:6 }}>
+                    {isCurrentUserMember
+                      ? <><MdCheckCircleOutline size={15} color="#10B981" /> You're a member</>
+                      : <><RiDoorOpenLine size={15} color={theme.colors.textMuted} /> You're not in this room</>
+                    }
                   </p>
-                  <p style={{ margin:0,fontSize:12,color:theme.colors.textMuted }}>
+                  <p style={{ margin:"2px 0 0",fontSize:12,color:theme.colors.textMuted }}>
                     {isCurrentUserMember ? "You have full access to collaborate" : "Join to access notes, tasks, and chat"}
                   </p>
                 </div>
                 {isCurrentUserMember ? (
-                  <button onClick={handleLeaveRoom} disabled={leaving} style={{ padding:"8px 18px",borderRadius:10,border:"none",background:leaving?"#FECACA":"#EF4444",color:"#fff",fontWeight:700,fontSize:13,cursor:leaving?"not-allowed":"pointer" }}>
-                    {leaving ? "Leaving…" : "🚪 Leave"}
+                  <button
+                    onClick={handleLeaveRoom}
+                    disabled={leaving}
+                    style={{ display:"flex",alignItems:"center",gap:5,padding:"8px 18px",borderRadius:10,border:"none",background:leaving?"#FECACA":"#EF4444",color:"#fff",fontWeight:700,fontSize:13,cursor:leaving?"not-allowed":"pointer" }}
+                  >
+                    <RiDoorOpenLine size={14} />
+                    {leaving ? "Leaving…" : "Leave"}
                   </button>
                 ) : (
-                  <button onClick={handleJoinRoom} disabled={joining} style={{ padding:"8px 18px",borderRadius:10,border:"none",background:joining?"#C4B5FD":theme.colors.primaryGradient,color:"#fff",fontWeight:700,fontSize:13,cursor:joining?"not-allowed":"pointer" }}>
-                    {joining ? "Joining…" : "🚀 Join Room"}
+                  <button
+                    onClick={handleJoinRoom}
+                    disabled={joining}
+                    style={{ display:"flex",alignItems:"center",gap:5,padding:"8px 18px",borderRadius:10,border:"none",background:joining?"#C4B5FD":theme.colors.primaryGradient,color:"#fff",fontWeight:700,fontSize:13,cursor:joining?"not-allowed":"pointer" }}
+                  >
+                    <RiRocketLine size={14} />
+                    {joining ? "Joining…" : "Join Room"}
                   </button>
                 )}
               </div>
 
               {members.length === 0 ? (
                 <div style={{ textAlign:"center",padding:"40px 0",color:theme.colors.textMuted }}>
-                  <div style={{ fontSize:40 }}>👥</div>
-                  <p style={{ fontSize:13,marginTop:8 }}>No members yet</p>
+                  <div style={{ display:"flex",justifyContent:"center",marginBottom:8 }}>
+                    <IoPeopleOutline size={40} color={theme.colors.textMuted} />
+                  </div>
+                  <p style={{ fontSize:13,marginTop:0 }}>No members yet</p>
                 </div>
               ) : (
                 <div style={{ display:"flex",flexDirection:"column",gap:8 }}>
@@ -182,15 +214,23 @@ function MembersDrawer({ isOpen, onClose, room, onMembershipChange }) {
           {/* FIND PEOPLE TAB */}
           {drawerTab === "add" && (
             <>
-              <div style={{ padding:"10px 14px",borderRadius:10,marginBottom:14,background:"#FFFBEB",border:"1px solid #FDE68A",fontSize:12,color:"#92400E",lineHeight:1.5 }}>
-                ℹ️ Users must join rooms themselves. Share the room ID{" "}
-                <strong style={{ background:"#FEF3C7",padding:"1px 6px",borderRadius:4 }}>#{room?.id}</strong>
-                {" "}so they can click <strong>Join Room</strong>.
+              <div style={{ display:"flex",alignItems:"flex-start",gap:8,padding:"10px 14px",borderRadius:10,marginBottom:14,background:"#FFFBEB",border:"1px solid #FDE68A",fontSize:12,color:"#92400E",lineHeight:1.5 }}>
+                <MdInfoOutline size={15} style={{ flexShrink:0,marginTop:1 }} />
+                <span>
+                  Users must join rooms themselves. Share the room ID{" "}
+                  <strong style={{ background:"#FEF3C7",padding:"1px 6px",borderRadius:4 }}>#{room?.id}</strong>
+                  {" "}so they can click <strong>Join Room</strong>.
+                </span>
               </div>
               <div style={{ display:"flex",alignItems:"center",gap:10,background:"#F9F5FF",borderRadius:12,border:`1.5px solid ${theme.colors.border}`,padding:"10px 14px",marginBottom:18 }}>
-                <span style={{ color:theme.colors.textMuted,fontSize:16 }}>🔍</span>
-                <input autoFocus value={query} onChange={e => setQuery(e.target.value)} placeholder="Search users by name or email…"
-                  style={{ flex:1,border:"none",outline:"none",background:"transparent",fontSize:14,color:theme.colors.textPrimary,fontFamily:"inherit" }} />
+                <IoSearchOutline size={16} color={theme.colors.textMuted} />
+                <input
+                  autoFocus
+                  value={query}
+                  onChange={e => setQuery(e.target.value)}
+                  placeholder="Search users by name or email…"
+                  style={{ flex:1,border:"none",outline:"none",background:"transparent",fontSize:14,color:theme.colors.textPrimary,fontFamily:"inherit" }}
+                />
                 {loadingUsers && <span style={{ fontSize:12,color:theme.colors.textMuted }}>Loading…</span>}
               </div>
               {filteredUsers.length > 0 ? (
@@ -215,8 +255,10 @@ function MembersDrawer({ isOpen, onClose, room, onMembershipChange }) {
               ) : (
                 !loadingUsers && (
                   <div style={{ textAlign:"center",padding:"40px 0",color:theme.colors.textMuted }}>
-                    <div style={{ fontSize:36 }}>🧑‍🤝‍🧑</div>
-                    <p style={{ fontSize:13,marginTop:10 }}>{query ? `No results for "${query}"` : "All registered users are already members"}</p>
+                    <div style={{ display:"flex",justifyContent:"center",marginBottom:10 }}>
+                      <HiOutlineUserGroup size={36} color={theme.colors.textMuted} />
+                    </div>
+                    <p style={{ fontSize:13,marginTop:0 }}>{query ? `No results for "${query}"` : "All registered users are already members"}</p>
                   </div>
                 )
               )}
