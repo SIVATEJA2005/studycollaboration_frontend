@@ -4,14 +4,16 @@ import background from "../assets/loginbackgroundimage.png";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 
-export default function SignUp() {
+export default function SignUp() 
+{
+
   const [email, setEmail] = useState("");
   const [userName, setUserName] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [emailSent, setEmailSent] = useState(false); // ✅ NEW
+  const [emailSent, setEmailSent] = useState(false); 
   const { signup } = useAuth();
   const navigate = useNavigate();
 
@@ -28,7 +30,7 @@ export default function SignUp() {
     setLoading(true);
     try {
       await signup(email, userName, displayName, password);
-      setEmailSent(true); // ✅ CHANGED: show email sent screen instead of alert
+      setEmailSent(true); 
     } catch (error) {
       if (error.response?.data?.message) {
         alert(error.response.data.message);
@@ -40,7 +42,6 @@ export default function SignUp() {
     }
   };
 
-  // ✅ NEW: Show this screen after successful signup
   if (emailSent) {
     return (
       <div className="relative min-h-screen flex items-center justify-center bg-gray-100">
@@ -78,7 +79,6 @@ export default function SignUp() {
     );
   }
 
-  // Original signup form (unchanged)
   return (
     <div className="relative min-h-screen flex items-center justify-center bg-gray-100">
       <div
@@ -167,7 +167,7 @@ export default function SignUp() {
           <span className="px-3 text-gray-400 text-xs">Or continue with</span>
           <hr className="flex-grow border-gray-300" />
         </div>
-        <div className="flex justify-center gap-6">
+        {/* <div className="flex justify-center gap-6">
           {[
             "https://cdn-icons-png.flaticon.com/512/281/281764.png",
             "https://cdn-icons-png.flaticon.com/512/732/732221.png",
@@ -180,7 +180,7 @@ export default function SignUp() {
               <img src={icon} className="w-5 h-5" />
             </button>
           ))}
-        </div>
+        </div> */}
         <div className="text-center mt-6 text-sm text-gray-500">
           Already have an account?
           <span

@@ -8,6 +8,9 @@ import { MdCheckCircleOutline, MdInfoOutline } from "react-icons/md";
 import { RiDoorOpenLine, RiRocketLine } from "react-icons/ri";
 import { HiOutlineUserGroup } from "react-icons/hi";
 
+
+
+
 const theme = {
   colors: {
     primary: "#6C63FF",
