@@ -101,7 +101,7 @@ export default function Login() {
         </div>
 
         {/* Social Login */}
-        <div className="flex justify-center gap-6">
+        {/* <div className="flex justify-center gap-6">
           {[
             "https://cdn-icons-png.flaticon.com/512/281/281764.png",
             "https://cdn-icons-png.flaticon.com/512/732/732221.png",
@@ -114,7 +114,7 @@ export default function Login() {
               <img src={icon} className="w-5 h-5" />
             </button>
           ))}
-        </div>
+        </div> */}
 
         {/* Signup */}
         <div className="text-center mt-6 text-sm text-gray-500">
